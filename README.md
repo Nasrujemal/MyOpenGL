@@ -23,7 +23,7 @@
 
 **Realistic 3D Watch** is an interactive computer graphics project developed using **C++**, **OpenGL**, **GLU**, and **freeglut**.
 
-The application renders a detailed 3D analog wristwatch and displays the **current system time in real time**. The watch model includes multiple visual components such as a metallic case, bezel, dial, hour markers, clock hands, crown, date display, crystal effect, and strap.
+The application renders a detailed 3D analog wristwatch and displays the **current system time in real time**. The watch model includes multiple visual components such as a metallic case, bezel, dial with markers, and animated hands.
 
 The project was designed to demonstrate practical computer graphics concepts including:
 
@@ -130,7 +130,21 @@ You can interact with the watch while the application is running.
 
 # 🖼️ Screenshots
 
-Add screenshots of your project to:
+Add your project screenshots to the `assets/screenshots/` directory and reference them below:
 
-```text
-MyOpenGL/assets/screenshots/
+```
+![Watch Display](./assets/screenshots/watch-display.png)
+![Interactive View](./assets/screenshots/interactive-view.png)
+```
+
+---
+
+# 🛠️ Build & Installation
+
+[Add build instructions here]
+
+---
+
+# 📝 License
+
+[Add license information here]
