@@ -1,4 +1,4 @@
-#define NOMINMAX
+﻿#define NOMINMAX
 #include <windows.h>
 #include <GL/freeglut.h>
 #include <ctime>
@@ -26,6 +26,14 @@
 float rotationX = 18.0f;
 float rotationY = -22.0f;
 float scale = 1.0f;
+
+// ---------- Real-time clock helper ----------
+SYSTEMTIME getCurrentLocalTime()
+{
+    SYSTEMTIME st{};
+    GetLocalTime(&st);
+    return st;
+}
 
 const float PI = 3.14159265358979323846f;
 const float CASE_R = 1.62f;
@@ -139,46 +147,167 @@ void drawRing(float innerRadius, float outerRadius, float z, int segments = 96)
 }
 
 // ---------- Watch strap ----------
+// A continuous, closed wrist strap surrounding the invisible wrist.
+// The watch case sits on top of the loop, just like a real watch worn on a wrist.
 void drawStrap()
 {
-    // Upper and lower leather straps.
-    // The watch face remains in the XY plane; strap extends along Y.
+    // Real wristwatch strap geometry:
+    // - The two original straight strap halves remain attached to the case.
+    // - Their outer/free ends do NOT meet at the center.
+    // - A curved section behind the invisible wrist connects those two ends,
+    //   forming one continuous closed loop when the watch is rotated.
+    const float strapWidth = 0.72f;
+    const float strapDepth = 0.20f;
+    const float strapCenter = 1.82f;
+    const float strapLength = 0.46f;
+    const float endY = strapCenter + strapLength * 0.5f; // 2.05
+
     setMaterial(0.12f, 0.045f, 0.025f, 0.25f, 20.0f);
 
-    // Upper strap
+    // Upper straight strap - unchanged outer end position.
     glPushMatrix();
-    glTranslatef(0.0f, 2.25f, -0.05f);
-    glScalef(0.72f, 1.55f, 0.20f);
+    glTranslatef(0.0f, strapCenter, -0.05f);
+    glScalef(strapWidth, strapLength, strapDepth);
     glutSolidCube(1.0);
     glPopMatrix();
 
-    // Lower strap
+    // Lower straight strap - unchanged outer end position.
     glPushMatrix();
-    glTranslatef(0.0f, -2.25f, -0.05f);
-    glScalef(0.72f, 1.55f, 0.20f);
+    glTranslatef(0.0f, -strapCenter, -0.05f);
+    glScalef(strapWidth, strapLength, strapDepth);
     glutSolidCube(1.0);
     glPopMatrix();
 
-    // Leather edge strips / stitching
+    // ------------------------------------------------------------
+    // Closed-loop rear connector.
+    // This curved section sits behind the watch/wrist and joins the
+    // two outer strap ends. It is intentionally below the watch case
+    // so it becomes visible when the watch is rotated to its back.
+    // ------------------------------------------------------------
+    const int segments = 48;
+    const float halfWidth = strapWidth * 0.5f;
+    const float halfThickness = strapDepth * 0.5f;
+    const float yRadius = endY;
+    const float zRadius = 1.35f;
+    const float zCenter = -0.10f;
+
+    // Front/back surfaces of the curved leather band.
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= segments; ++i)
+    {
+        float t = PI * static_cast<float>(i) / segments;
+
+        float y = yRadius * cosf(t);
+        float z = zCenter - zRadius * sinf(t);
+
+        // Normal in the YZ plane, pointing outward from the ellipse.
+        float ny = cosf(t);
+        float nz = -sinf(t);
+
+        glNormal3f(0.0f, ny, nz);
+        glVertex3f(-halfWidth, y + ny * halfThickness, z + nz * halfThickness);
+        glVertex3f(halfWidth, y + ny * halfThickness, z + nz * halfThickness);
+    }
+    glEnd();
+
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= segments; ++i)
+    {
+        float t = PI * static_cast<float>(i) / segments;
+
+        float y = yRadius * cosf(t);
+        float z = zCenter - zRadius * sinf(t);
+
+        float ny = cosf(t);
+        float nz = -sinf(t);
+
+        glNormal3f(0.0f, -ny, -nz);
+        glVertex3f(halfWidth, y - ny * halfThickness, z - nz * halfThickness);
+        glVertex3f(-halfWidth, y - ny * halfThickness, z - nz * halfThickness);
+    }
+    glEnd();
+
+    // Curved outer edges, keeping the rear connector looking like the
+    // same leather strap rather than a separate wire or tube.
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= segments; ++i)
+    {
+        float t = PI * static_cast<float>(i) / segments;
+
+        float y = yRadius * cosf(t);
+        float z = zCenter - zRadius * sinf(t);
+
+        glNormal3f(-1.0f, 0.0f, 0.0f);
+        glVertex3f(-halfWidth, y + cosf(t) * halfThickness,
+            z - sinf(t) * halfThickness);
+        glVertex3f(-halfWidth, y - cosf(t) * halfThickness,
+            z + sinf(t) * halfThickness);
+    }
+    glEnd();
+
+    glBegin(GL_QUAD_STRIP);
+    for (int i = 0; i <= segments; ++i)
+    {
+        float t = PI * static_cast<float>(i) / segments;
+
+        float y = yRadius * cosf(t);
+        float z = zCenter - zRadius * sinf(t);
+
+        glNormal3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(halfWidth, y - cosf(t) * halfThickness,
+            z + sinf(t) * halfThickness);
+        glVertex3f(halfWidth, y + cosf(t) * halfThickness,
+            z - sinf(t) * halfThickness);
+    }
+    glEnd();
+
+    // ------------------------------------------------------------
+    // Original stitching on the two straight strap sections.
+    // ------------------------------------------------------------
     setMaterial(0.72f, 0.48f, 0.20f, 0.15f, 10.0f);
 
     for (int side = -1; side <= 1; side += 2)
     {
         float x = side * 0.58f;
 
-        for (int i = -5; i <= 5; ++i)
+        for (int i = 0; i < 3; ++i)
         {
-            float y = i * 0.23f;
+            float offset = (i - 1) * 0.13f;
 
             glPushMatrix();
-            glTranslatef(x, y + (i > 0 ? 2.0f : -2.0f), 0.08f);
+            glTranslatef(x, strapCenter + offset, 0.08f);
+            glScalef(0.025f, 0.06f, 0.025f);
+            glutSolidCube(1.0);
+            glPopMatrix();
+
+            glPushMatrix();
+            glTranslatef(x, -strapCenter - offset, 0.08f);
             glScalef(0.025f, 0.06f, 0.025f);
             glutSolidCube(1.0);
             glPopMatrix();
         }
     }
 
-    // Lugs connecting strap to case
+    // Stitching following the curved rear connector.
+    for (int side = -1; side <= 1; side += 2)
+    {
+        float x = side * 0.31f;
+
+        for (int i = 2; i < segments - 1; i += 3)
+        {
+            float t = PI * static_cast<float>(i) / segments;
+            float y = yRadius * cosf(t);
+            float z = zCenter - zRadius * sinf(t);
+
+            glPushMatrix();
+            glTranslatef(x, y, z + 0.03f);
+            glScalef(0.018f, 0.035f, 0.018f);
+            glutSolidCube(1.0);
+            glPopMatrix();
+        }
+    }
+
+    // Original lugs connecting each straight strap to the case.
     setMaterial(0.42f, 0.44f, 0.47f, 0.9f, 110.0f);
 
     for (int y = -1; y <= 1; y += 2)
@@ -257,49 +386,71 @@ void drawDial()
 // ---------- Hour markers ----------
 void drawHourMarkers()
 {
-    setMaterial(0.78f, 0.80f, 0.83f, 1.0f, 150.0f);
+    // Exact 12-position layout: 12 o'clock at +Y, then clockwise every 30 degrees.
+    // Hour sticks and minute ticks use the same angular reference, so everything lines up.
+    const float z = 0.43f;
 
-    for (int i = 0; i < 12; ++i)
+    setMaterial(0.84f, 0.86f, 0.89f, 1.0f, 170.0f);
+
+    for (int hour = 0; hour < 12; ++hour)
     {
-        float angle = i * 30.0f * PI / 180.0f;
+        const float angleDeg = hour * 30.0f;
+        const float angleRad = angleDeg * PI / 180.0f;
+        const bool major = (hour % 3 == 0);
 
-        // 12, 3, 6, 9 get larger markers
-        bool major = (i % 3 == 0);
+        const float innerRadius = major ? 0.93f : 0.97f;
+        const float outerRadius = major ? 1.15f : 1.14f;
+        const float length = outerRadius - innerRadius;
+        const float radius = (innerRadius + outerRadius) * 0.5f;
+        const float width = major ? 0.105f : 0.060f;
 
-        float radius = major ? 1.08f : 1.13f;
-        float x = radius * sinf(angle);
-        float y = radius * cosf(angle);
+        const float x = radius * sinf(angleRad);
+        const float y = radius * cosf(angleRad);
 
         glPushMatrix();
-        glTranslatef(x, y, 0.42f);
-
-        // Rotate the rectangular marker tangentially
-        glRotatef(-i * 30.0f, 0, 0, 1);
-
-        glScalef(major ? 0.10f : 0.055f,
-            major ? 0.22f : 0.16f,
-            0.055f);
-
-        glutSolidCube(1.0);
+        glTranslatef(x, y, z);
+        // A marker starts vertical at 12 o'clock and rotates clockwise with the dial.
+        glRotatef(-angleDeg, 0.0f, 0.0f, 1.0f);
+        glScalef(width, length, 0.055f);
+        glutSolidCube(1.0f);
         glPopMatrix();
     }
 
-    // Minute markers
-    setMaterial(0.52f, 0.54f, 0.57f, 0.75f, 90.0f);
-
-    for (int i = 0; i < 60; ++i)
+    // Every minute tick is generated from the same exact 6-degree angular grid.
+    // Five-minute positions are slightly stronger; the 12 hour sticks remain clearly visible.
+    for (int tick = 0; tick < 60; ++tick)
     {
-        if (i % 5 == 0) continue;
+        const float angleDeg = tick * 6.0f;
+        const float angleRad = angleDeg * PI / 180.0f;
+        const bool fiveMinute = (tick % 5 == 0);
 
-        float angle = i * 6.0f * PI / 180.0f;
-        float r1 = 1.22f;
-        float r2 = (i % 5 == 0) ? 1.17f : 1.185f;
+        setMaterial(
+            fiveMinute ? 0.70f : 0.48f,
+            fiveMinute ? 0.72f : 0.50f,
+            fiveMinute ? 0.76f : 0.53f,
+            0.85f,
+            105.0f
+        );
 
+        const float outerRadius = 1.245f;
+        const float innerRadius = fiveMinute ? 1.18f : 1.195f;
+
+        glLineWidth(fiveMinute ? 2.0f : 1.0f);
         glBegin(GL_LINES);
-        glVertex3f(r1 * sinf(angle), r1 * cosf(angle), 0.39f);
-        glVertex3f(r2 * sinf(angle), r2 * cosf(angle), 0.39f);
+        glVertex3f(
+            outerRadius * sinf(angleRad),
+            outerRadius * cosf(angleRad),
+            0.415f
+        );
+        glVertex3f(
+            innerRadius * sinf(angleRad),
+            innerRadius * cosf(angleRad),
+            0.415f
+        );
         glEnd();
     }
+
+    glLineWidth(1.0f);
 }
 
 // ---------- Dial text ----------
@@ -330,27 +481,26 @@ void drawDialDetails()
 // ---------- Date window ----------
 void drawDateWindow()
 {
-    // At 3 o'clock
+    SYSTEMTIME st = getCurrentLocalTime();
+
     glPushMatrix();
     glTranslatef(0.92f, 0.0f, 0.43f);
 
-    setMaterial(0.88f, 0.87f, 0.82f, 0.4f, 50.0f);
+    // White date disc/window.
+    setMaterial(0.92f, 0.91f, 0.86f, 0.35f, 55.0f);
     glScalef(0.25f, 0.16f, 0.045f);
-    glutSolidCube(1.0);
+    glutSolidCube(1.0f);
 
     glDisable(GL_LIGHTING);
-    glColor3f(0.08f, 0.08f, 0.08f);
-    glRasterPos3f(-0.035f, -0.035f, 0.03f);
+    glColor3f(0.06f, 0.06f, 0.065f);
 
-    time_t now = time(nullptr);
-    struct tm localTime {};
-    localtime_s(&localTime, &now);
+    char dateText[4]{};
+    sprintf_s(dateText, "%02d", static_cast<int>(st.wDay));
 
-    char dateText[3];
-    sprintf_s(dateText, "%02d", localTime.tm_mday);
-
-    for (int i = 0; dateText[i]; ++i)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, dateText[i]);
+    // Center the two-digit date inside the window.
+    glRasterPos3f(-0.065f, -0.035f, 0.03f);
+    for (const char* p = dateText; *p; ++p)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, *p);
 
     glEnable(GL_LIGHTING);
     glPopMatrix();
@@ -375,50 +525,51 @@ void drawHand(float length, float width, float angle,
 
 void drawClockHands()
 {
-    time_t now = time(nullptr);
+    // Take exactly one Windows time sample so all three hands stay synchronized.
+    const SYSTEMTIME st = getCurrentLocalTime();
 
-    // Millisecond precision for smooth sweeping
-    struct tm localTime {};
-    localtime_s(&localTime, &now);
+    const float seconds = static_cast<float>(st.wSecond);
+    const float minutes = static_cast<float>(st.wMinute) + seconds / 60.0f;
+    const float hours = static_cast<float>(st.wHour % 12) + minutes / 60.0f;
 
-    SYSTEMTIME st;
-    GetLocalTime(&st);
+    const float hourAngle = hours * 30.0f;
+    const float minuteAngle = minutes * 6.0f;
+    const float secondAngle = seconds * 6.0f;
 
-    float seconds = localTime.tm_sec + st.wMilliseconds / 1000.0f;
-    float minutes = localTime.tm_min + seconds / 60.0f;
-    float hours = (localTime.tm_hour % 12) + minutes / 60.0f;
+    // Hour hand.
+    drawHand(
+        0.67f, 0.115f, hourAngle,
+        0.78f, 0.80f, 0.83f, 0.49f
+    );
 
-    float hourAngle = hours * 30.0f;
-    float minuteAngle = minutes * 6.0f;
-    float secondAngle = seconds * 6.0f;
+    // Minute hand.
+    drawHand(
+        0.98f, 0.075f, minuteAngle,
+        0.86f, 0.87f, 0.89f, 0.51f
+    );
 
-    // Hour hand
-    drawHand(0.67f, 0.115f, hourAngle,
-        0.78f, 0.80f, 0.83f, 0.49f);
+    // Traditional ticking seconds hand: exactly one step per real second.
+    // This prevents the hand from appearing to race around the dial.
+    drawHand(
+        1.10f, 0.025f, secondAngle,
+        0.68f, 0.045f, 0.035f, 0.54f
+    );
 
-    // Minute hand
-    drawHand(0.98f, 0.075f, minuteAngle,
-        0.86f, 0.87f, 0.89f, 0.51f);
-
-    // Red-tipped sweeping second hand
-    drawHand(1.10f, 0.025f, secondAngle,
-        0.68f, 0.045f, 0.035f, 0.54f);
-
-    // Counterweight for second hand
+    // Seconds-hand counterweight.
     glPushMatrix();
     glRotatef(-secondAngle, 0, 0, 1);
-    glTranslatef(0, -0.22f, 0.54f);
+    glTranslatef(0.0f, -0.22f, 0.54f);
 
     setMaterial(0.65f, 0.04f, 0.03f, 0.9f, 130.0f);
     glScalef(0.04f, 0.22f, 0.025f);
-    glutSolidCube(1.0);
+    glutSolidCube(1.0f);
 
     glPopMatrix();
 
-    // Center jewel
+    // Center jewel/pivot.
     setMaterial(0.80f, 0.58f, 0.16f, 1.0f, 180.0f);
     glPushMatrix();
-    glTranslatef(0, 0, 0.59f);
+    glTranslatef(0.0f, 0.0f, 0.59f);
     glutSolidSphere(0.065f, 32, 32);
     glPopMatrix();
 }
@@ -532,25 +683,9 @@ void display()
     glRotatef(rotationX, 1, 0, 0);
     glRotatef(rotationY, 0, 1, 0);
 
-    // TEST TRIANGLE - REMOVE LATER
-    glDisable(GL_LIGHTING);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glBegin(GL_TRIANGLES);
-        glVertex3f(-2.0f, -2.0f, 0.0f);
-        glVertex3f(2.0f, -2.0f, 0.0f);
-        glVertex3f(0.0f, 2.0f, 0.0f);
-    glEnd();
-    glEnable(GL_LIGHTING);
-
     drawWatch();
 
     glutSwapBuffers();
-
-    static bool firstFrame = true;
-    if (firstFrame) {
-        printf("First frame rendered!\n");
-        firstFrame = false;
-    }
 }
 
 // ---------- Interaction ----------
@@ -657,21 +792,32 @@ void reshape(int width, int height)
 // ---------- Continuous animation ----------
 void idle()
 {
+    // Keep the scene responsive while the timer below guarantees
+    // regular real-time clock/date refreshes.
     glutPostRedisplay();
+}
+
+
+// ---------- Real-time refresh timer ----------
+void refreshClock(int)
+{
+    glutPostRedisplay();
+    glutTimerFunc(50, refreshClock, 0); // ~20 FPS refresh; hands still tick in real seconds
 }
 
 // ---------- Initialization ----------
 void initScene()
 {
-    glClearColor(0.0f, 1.0f, 0.0f, 1.0f); // Bright green to test rendering
+    // Premium dark studio background instead of the old bright-green test color.
+    glClearColor(0.012f, 0.018f, 0.030f, 1.0f);
 
     initLighting();
 
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 // ---------- Main ----------
@@ -695,7 +841,7 @@ int main(int argc, char** argv)
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(specialKeys);
     glutMouseFunc(mouse);
-    glutIdleFunc(idle);
+    glutTimerFunc(50, refreshClock, 0);
 
     glutMainLoop();
 
