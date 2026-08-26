@@ -133,4 +133,4 @@ You can interact with the watch while the application is running.
 Add screenshots of your project to:
 
 ```text
-assets/screenshots/
+MyOpenGL/assets/screenshots/
