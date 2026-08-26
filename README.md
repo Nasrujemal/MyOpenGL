@@ -132,7 +132,7 @@ You can interact with the watch while the application is running.
 
 ```
 ![Watch Display](./assets/screenshots/front-view.png)
-![Interactive View](./assets/screenshots/perspectivetive-view.png)
+![Interactive View](./assets/screenshots/perspective-view.png)
 ![Interactive View](./assets/screenshots/side-view.png)
 ```
 
