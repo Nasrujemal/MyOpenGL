@@ -131,9 +131,9 @@ You can interact with the watch while the application is running.
 # Screenshots
 
 
-![Watch Display](./Assets/Screenshots/front-view.png)
-![Interactive View](./Assets/Screenshots/perspective-view.png)
-![Interactive View](./Assets/Screenshots/side-view.png)
+![Watch Display](./MyOpenGL/Assets/Screenshots/front-view.png)
+![Interactive View](./MyOpenGL/Assets/Screenshots/perspective-view.png)
+![Interactive View](./MyOpenGL/Assets/Screenshots/side-view.png)
 
 
 
