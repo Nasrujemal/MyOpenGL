@@ -27,36 +27,36 @@ The application renders a detailed 3D analog wristwatch and displays the **curre
 
 The project was designed to demonstrate practical computer graphics concepts including:
 
-- 🧊 3D object modeling
-- 🔄 Geometric transformations
-- 💡 OpenGL lighting
-- ✨ Material properties and specular highlights
-- 🔍 Depth testing
-- 🪞 Transparency and crystal effects
-- ⏱️ Real-time animation
-- 🖥️ Perspective projection
-- 🎮 Interactive rotation and zoom controls
+-  3D object modeling
+-  Geometric transformations
+-  OpenGL lighting
+-  Material properties and specular highlights
+-  Depth testing
+-  Transparency and crystal effects
+-  Real-time animation
+-  Perspective projection
+-  Interactive rotation and zoom controls
 
 ---
 
-# ✨ Features
+#  Features
 
-## ⌚ Real-Time Analog Watch
+##  Real-Time Analog Watch
 
 The watch reads the computer's local system time and continuously updates its hands.
 
 ### Time Components
 
-- 🕐 Hour hand
-- 🕑 Minute hand
-- 🔴 Second hand
-- 📅 Date display
+-  Hour hand
+-  Minute hand
+-  Second hand
+-  Date display
 
 The hour and minute hands move smoothly based on the current time.
 
 ---
 
-## 🧱 Detailed 3D Watch Model
+##  Detailed 3D Watch Model
 
 The project models several individual components to create a more realistic watch.
 
@@ -80,7 +80,7 @@ The project models several individual components to create a more realistic watc
 
 ---
 
-## 💡 Lighting and Materials
+##  Lighting and Materials
 
 Lighting is used to improve the depth and realism of the 3D model.
 
@@ -97,15 +97,15 @@ Different material properties help distinguish between surfaces such as:
 
 | Material | Visual Purpose |
 |---|---|
-| 🔩 Metal | Watch case, bezel, markers |
-| 🌑 Dark material | Watch dial |
-| ✨ Reflective material | Crystal and polished surfaces |
-| 🟤 Leather-style material | Watch strap |
-| 🔴 Accent material | Second hand |
+|  Metal | Watch case, bezel, markers |
+|  Dark material | Watch dial |
+|  Reflective material | Crystal and polished surfaces |
+|  Leather-style material | Watch strap |
+|  Accent material | Second hand |
 
 ---
 
-## 🎮 Interactive Controls
+##  Interactive Controls
 
 You can interact with the watch while the application is running.
 
@@ -128,23 +128,15 @@ You can interact with the watch while the application is running.
 
 ---
 
-# 🖼️ Screenshots
-
-Add your project screenshots to the `assets/screenshots/` directory and reference them below:
+# Screenshots
 
 ```
-![Watch Display](./assets/screenshots/watch-display.png)
-![Interactive View](./assets/screenshots/interactive-view.png)
+![Watch Display](./assets/screenshots/front-view.png)
+![Interactive View](./assets/screenshots/perspectivetive-view.png)
+![Interactive View](./assets/screenshots/side-view.png)
 ```
 
 ---
 
-# 🛠️ Build & Installation
 
-[Add build instructions here]
 
----
-
-# 📝 License
-
-[Add license information here]
